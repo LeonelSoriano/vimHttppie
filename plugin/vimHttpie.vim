@@ -37,6 +37,8 @@ endif
 "======================
     "texto que guarda la salida de httpie
     let s:outputHttp = ""
+    "si la salida de httpie tiene errores
+    let s:isOutError = 0
 "==================
 
 
@@ -48,11 +50,22 @@ function! s:OnEvent(job_id, data, event) abort
     "echo s:data
     "echo a:event
     "call s:isLoadin()
+
     if a:event == 'stdout'
         let s:outputHttp = a:data
     elseif a:event == 'stderr'
         let s:outputHttp = a:data
+        let s:isOutError = 1
     elseif a:event == 'exit'
+
+
+        if(s:isOutError == 1)
+            exe "%d"
+            set ft=texinfo
+            call append(line('$'), s:outputHttp)
+            return
+        endif
+
 
         try
             let decodejson = json_decode(s:outputHttp)
@@ -68,7 +81,7 @@ function! s:OnEvent(job_id, data, event) abort
             else
                 let concatArray = ""
                 for i in s:outputHttp
-                  let concatArray .= i
+                    let concatArray .= i
                 endfor
 
 
@@ -109,22 +122,42 @@ fun! Httpie(...)
         echon 'debes tener por lo menos el metodo y la url en ese orden'
         return
     endif
-    
+
+    "esto es para ignorar los primeros parametros depende el tipo de peticion
+    let l:ignoreParam = 0
     if(substitute(args[1], "\"",'','g') ==? "base")
         let l:apiUrl .=  g:vim_httppie_base
-        "aca cone l cuerpo
+        let l:ignoreParam = 2
+        "aca con el cuerpo
         if(argsLen > 2)
             let l:apiUrl .= substitute(args[2], "\"",'','g')
+            let l:ignoreParam = 3
         endif
     else
         if(argsLen > 1)
             let l:apiUrl .= substitute(args[1], "\"",'','g')
+            let l:ignoreParam = 2
         endif
     endif
-    echo l:apiUrl
+
+    let l:extaParam = ""
+    let l:index = 0
+    for i in args
+        let l:index +=1
+        if(l:index > l:ignoreParam  )
+            let l:extaParam  .=   strpart(i, 1, len(i) - 2) . " "
+        endif
+    endfor
+
+    echo l:extaParam
     call s:open_win_preview()
+
+    "reinicio los errores
+    let s:isOutError = 0
+    echo 'http '. strpart(args[0], 1, len(args[0]) - 2) ." ".  l:apiUrl .
+                \ '  --ignore-stdin --verbose  --print=b  ' . l:extaParam
    "let job1 = jobstart(['bash'], extend({'shell': 'shell 1'}, s:callbacks))
-    let job2 = jobstart(['sh', '-c', 'http '. args[0] ." ".  l:apiUrl .
+    let job2 = jobstart(['sh', '-c', 'http '. args[0] ." ".  l:apiUrl . " "  . l:extaParam .
                 \ '  --ignore-stdin --verbose  --print=b  '], extend({'shell': 'shell'}, s:callbacks))
 
 "echo job2
@@ -193,3 +226,4 @@ fun s:makeTmpForBrowser(content)
 
     exe "silent! !echo ". shellescape(a:content, 1) ."> " . "/home/leonel/.vim/plugged/vimHttppie/tmp/tmp.html"
 endfun
+
