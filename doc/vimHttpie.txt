@@ -4,6 +4,7 @@ plugin que wrapea httpie para vim y nvim
 
 1. Varaibles globales    |vimHttpie-global|
 2. Httpie command        |vimHttpie-commands|
+3. Httpie funtion        |vimHttpie-funtion|
 ================================
 1. Variables globales:    *vimHttpie-global*
     esta es una explicacion de la configuracion de las varaibles globales que
@@ -27,3 +28,9 @@ g:vim_httppie_base :
         :Httpie POST http://localhost:8080/api/sample
         :Httpie POST base /api/user/login email='email@gmail.com' password='123'
 
+===================
+3. Funciones:   *vimHttpie-funtion*
+
+:call HttpieChangeBase("new base") cambia el url base dentro de vim
+
+:call HttpieGetBase()   obtiene la url base actual
