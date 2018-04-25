@@ -1,0 +1,29 @@
+*vimHttpie.txt* plugin is only run in nvim for now
+
+plugin que wrapea httpie para vim y nvim
+
+1. Varaibles globales    |vimHttpie-global|
+2. Httpie command        |vimHttpie-commands|
+================================
+1. Variables globales:    *vimHttpie-global*
+    esta es una explicacion de la configuracion de las varaibles globales que
+    pueden ser configuradas para el plugin
+
+g:vimHttppieBrowser :
+    esta varaible indica que navegador sera abierto al detectar que el archivo es de tipo
+    html, esto hara que se abra el navegador con la informacion de dicho html,
+    se puede configurar para que no sea asi y salga de manera normal por el buffer.
+
+g:vim_httppie_base :
+    variable que evita escribir la url base del miso servidor en varias ocaciones puede ser
+    modificada desde dentro de vim
+
+====================================
+2. Comandos:        *vimHttpie-commands*
+
+:Httpie <method>  (base + info or url) comands httpie
+    samples 
+        :Httpie GET base /api/sample
+        :Httpie POST http://localhost:8080/api/sample
+        :Httpie POST base /api/user/login email='email@gmail.com' password='123'
+

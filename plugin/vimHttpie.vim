@@ -24,6 +24,7 @@ if !exists('g:vim_httppie_base')
   let g:vim_httppie_base = "https://localhost:8080"
 endif
 
+"faltan por ponerlas a funcionar  y colocarla en help
 if !exists('g:vim_httppie_base_token')
   let g:vim_httppie_base_token = "localhost"
 endif
