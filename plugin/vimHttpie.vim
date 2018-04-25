@@ -1,3 +1,14 @@
+" Name:            vimHttpie
+" Author:          Leonel Soriano <leonelsoriano3@gmail.com>
+" Version:         0.0.1 alfa
+" License:         Same terms as Vim itself (see :help license)
+"
+" See :help vimHttpie for documentation.
+"TODO 
+"  1- auto llamar refesh token
+"  2- archivo para configurar las llamadas comunes con un alias
+"  3- limpiar codigo
+
 if exists("vim_httpie_leonelsoirano3")
     finish
 endif
@@ -10,7 +21,7 @@ if !exists('g:vimHttppieBrowser')
 endif
 
 if !exists('g:vim_httppie_base')
-  let g:vim_httppie_base = "https://jsonplaceholder.typicode.com"
+  let g:vim_httppie_base = "https://localhost:8080"
 endif
 
 if !exists('g:vim_httppie_base_token')
