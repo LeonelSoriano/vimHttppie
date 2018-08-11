@@ -49,7 +49,7 @@ endif
 "======================
     "texto que guarda la salida de httpie
     let s:outputHttp = ""
-    "si la salida de httpie tiene errores
+    "si la salida le httpie tiene errores
     let s:isOutError = 0
 "==================
 
