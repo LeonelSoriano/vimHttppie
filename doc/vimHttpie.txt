@@ -5,6 +5,7 @@ plugin que wrapea httpie para vim y nvim
 1. Varaibles globales    |vimHttpie-global|
 2. Httpie command        |vimHttpie-commands|
 3. Httpie funtion        |vimHttpie-funtion|
+4. Options               |vimHttpie-options|
 ================================
 1. Variables globales:    *vimHttpie-global*
     esta es una explicacion de la configuracion de las varaibles globales que
@@ -34,3 +35,11 @@ g:vim_httppie_base :
 :call HttpieChangeBase("new base") cambia el url base dentro de vim
 
 :call HttpieGetBase()   obtiene la url base actual
+
+===================
+3. Opciones:   *vimHttpie-options*
+
+-b :
+  descarga la respuesta y lo carga en el navegador
+-h -H --HEADER  -b -B --BODY:
+  filtra la respuesta a solo el header o el body dependiendo del caso

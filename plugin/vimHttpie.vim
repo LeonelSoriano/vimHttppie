@@ -41,7 +41,7 @@ endif
     "nombre del bufffer que se abre
     let s:nameBuffer = "Httpie"
     "nombre del archivo temporal
-    let s:nameTmpFile = "./tmp/tmp.html"
+    let s:nameDirFile = "./tmp/tmp.html"
 "======================
 
 "===========
@@ -51,6 +51,12 @@ endif
     let s:outputHttp = ""
     "si la salida le httpie tiene errores
     let s:isOutError = 0
+
+    "si es header o solo el json de respuesta
+    let s:isOnlyJson = 0
+
+    " si sera guardado y mostrado desde el navegador
+    let s:tmpForBrowser = 0
 "==================
 
 
@@ -64,12 +70,16 @@ function! s:OnEvent(job_id, data, event) abort
     "call s:isLoadin()
 
     if a:event == 'stdout'
+      "si no es de tipo array para que no tome en cuenta el ['']      
+"      echo a:data      
+      if( a:data != [''] )          
         let s:outputHttp = a:data
+      endif
+      "echo s:outputHttp
     elseif a:event == 'stderr'
-        let s:outputHttp = a:data
-        let s:isOutError = 1
+"        let s:outputHttp = a:data
+"        let s:isOutError = 1
     elseif a:event == 'exit'
-
 
         if(s:isOutError == 1)
             exe "%d"
@@ -77,31 +87,29 @@ function! s:OnEvent(job_id, data, event) abort
             call append(line('$'), s:outputHttp)
             return
         endif
+          
 
-
-        try
-            let decodejson = json_decode(s:outputHttp)
-            exe "%d"
-            call append(line('$'), s:outputHttp)
-            exe "d1"
-        catch
-            if g:vimHttppieBrowser is 0
-                let decodejson = json_decode(s:outputHttp)
-                exe "%d"
-                call append(line('$'), s:outputHttp)
-                exe "d1"
+        "try
+            "let decodejson = json_decode(s:outputHttp)
+            if(s:tmpForBrowser == 0)
+              "exe "%d"
+              call append(line('$'), s:outputHttp)
+              exe "d1"
             else
-                let concatArray = ""
-                for i in s:outputHttp
-                    let concatArray .= i
-                endfor
+              let concatArray = ""
+
+              for i in s:outputHttp
+                  let concatArray .= i
+              endfor
 
 
-                call s:makeTmpForBrowser(concatArray)
-                exe "silent !". g:vimHttppieBrowser ." " . s:nameTmpFile
-                exe "%d"
+              call s:makeTmpForBrowser(concatArray)
+              exe "silent !". g:vimHttppieBrowser ." " . s:nameDirFile
+              exe "%d"
             endif
-        endtry
+        "catch
+""
+        "endtry
         let s:outputHttp = ""
     else
         "let str = a:data
@@ -135,6 +143,7 @@ fun! Httpie(...)
         return
     endif
 
+
     "esto es para ignorar los primeros parametros depende el tipo de peticion
     let l:ignoreParam = 0
     if(substitute(args[1], "\"",'','g') ==? "base")
@@ -153,25 +162,42 @@ fun! Httpie(...)
     endif
 
     let l:extaParam = ""
+    let s:tmpForBrowser = 0
     let l:index = 0
+
+
     for i in args
         let l:index +=1
+        "pasamos dos dos primeros parametro por ser base y tipo de peticion
         if(l:index > l:ignoreParam  )
-            let l:extaParam  .=   strpart(i, 1, len(i) - 2) . " "
+
+              let param = strpart(i, 1, len(i) - 2)
+              "basicamente es el alias del --print=h de httpie tambien se puede enviar como este paramentro
+              if(param == "-H"  || param == "-h" || param  == "--HEADER")
+                let s:isOnlyJson = 0
+                let l:extaParam .= " --print=h "
+              elseif(param == "-B"  || param == "-b" || param  == "--BODY")
+                let s:isOnlyJson = 1
+                let l:extaParam .= " --print=b "
+              elseif(param == '-d')
+                let s:tmpForBrowser = 1
+              else
+                let s:isOnlyJson = 0
+                let l:extaParam  .=   strpart(i, 1, len(i) - 2) . " "
+              endif
         endif
     endfor
 
-    echo l:extaParam
     call s:open_win_preview()
 
     "reinicio los errores
     let s:isOutError = 0
     echo 'http '. strpart(args[0], 1, len(args[0]) - 2) ." ".  l:apiUrl .
-                \ '  --ignore-stdin --verbose  --print=b  ' . l:extaParam
+                \ '  --ignore-stdin --verbose  ' . l:extaParam
    "let job1 = jobstart(['bash'], extend({'shell': 'shell 1'}, s:callbacks))
     let job2 = jobstart(['sh', '-c', 'http '. args[0] ." ".  l:apiUrl . " "  . l:extaParam .
-                \ '  --ignore-stdin --verbose  --print=b  '], extend({'shell': 'shell'}, s:callbacks))
-
+                \ '  --ignore-stdin --verbose   '], extend({'shell': 'shell'}, s:callbacks))
+"--print=b 
 "echo job2
 
 "echo system("http GET  https://github.com/  --verbose")
@@ -191,7 +217,10 @@ function s:open_win_preview()
     noautocmd wincmd P
     "exe "file Httpie" 
     set nohidden
-    set ft=json
+    if(s:isOnlyJson == 1)
+      set ft=json
+    endif
+    "set ft=json
     set buftype=nofile
     "put = printf("%s",P)
     "exe "noautocmd r "
@@ -226,7 +255,7 @@ fun! Runcmd(cmd)
     noautocmd wincmd P
 
     if g:vimHttppieBrowser isnot  0
-        call s:makeTmpForBrowser("<html><body>hola</body></html>")
+        call s:makeTmpForBrowser("<html><body>hola2</body></html>")
         exe "silent !". g:vimHttppieBrowser ." " . s:nameTmpFile
     endif
 endfun
@@ -242,6 +271,6 @@ fun s:makeTmpForBrowser(content)
         exe "silent! !touch ./tmp/tmp.html"
     endif
 
-    exe "silent! !echo ". shellescape(a:content, 1) ."> " . "/home/leonel/.vim/plugged/vimHttppie/tmp/tmp.html"
+    exe "silent! !echo ". shellescape(a:content, 1) ."> " . s:nameDirFile
 endfun
 
