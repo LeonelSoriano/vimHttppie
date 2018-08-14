@@ -49,6 +49,7 @@ es un plugin para vim que trabaja con **Httpie** y asi dar un preview de la la r
   filtra la respuesta a solo el header o el body dependiendo del caso
 
 <br>
+
 ### Licencia:
 
     One line to give the program's name and a brief description.
